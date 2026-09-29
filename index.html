@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&family=Pacifico&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        capyBrown: '#8B5A2B',
+                        capyLight: '#D2B48C',
+                        capyDark: '#4A3B32',
+                        capyCream: '#FDF6E3',
+                        frosting: '#FFF0F5',
+                        matcha: '#9DC183'
+                    },
+                    fontFamily: {
+                        heading: ['Pacifico', 'cursive'],
+                        body: ['Nunito', 'sans-serif'],
+                        fun: ['Fredoka One', 'cursive']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #F4EBE1;
+            background-image: radial-gradient(#D2B48C 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: #4A3B32;
+            overflow-x: hidden;
+        }
+
+        /* Cake Scene Wrapper */
+        .cake-scene {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            margin-bottom: 2rem;
+        }
+
+        /* 3-Tier Cake Styles */
+        .cake-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 30; /* Keep cake above polaroids */
+        }
+
+        .tier {
+            position: relative;
+            background-color: #8B5A2B;
+            border-radius: 10px 10px 0 0;
+            box-shadow: inset 0 -10px rgba(0,0,0,0.15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Wood/fur texture effect */
+            background-image: repeating-linear-gradient(
+                to right,
+                transparent,
+                transparent 10px,
+                rgba(0,0,0,0.05) 10px,
+                rgba(0,0,0,0.05) 20px
+            );
+        }
+
+        .tier-bottom { width: 240px; height: 90px; }
+        .tier-middle { width: 180px; height: 75px; }
+        .tier-top { width: 120px; height: 60px; border-radius: 15px 15px 0 0; }
+
+        .frosting {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: 25px;
+            background-color: #FFF0F5;
+            border-radius: 10px 10px 20px 20px;
+        }
+
+        .frosting-drips {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .drip {
+            width: 20px;
+            height: 20px;
+            background-color: #FFF0F5;
+            border-radius: 50%;
+            box-shadow: 0 5px 0 #FFF0F5;
+        }
+
+        /* Capybara Cake Decor */
+        .capy-decor {
+            position: absolute;
+            font-size: 1.5rem;
+            z-index: 10;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+        }
+
+        .candle-wrapper {
+            position: absolute;
+            top: -45px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 40;
+        }
+
+        .candle {
+            width: 16px;
+            height: 45px;
+            background: repeating-linear-gradient( 45deg, #fff, #fff 5px, #ffb6c1 5px, #ffb6c1 10px );
+            border-radius: 3px;
+            position: relative;
+        }
+
+        .wick {
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 8px;
+            background-color: #333;
+            border-radius: 2px;
+        }
+
+        .flame {
+            position: absolute;
+            top: -26px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 15px;
+            height: 25px;
+            background-color: #FFA500;
+            border-radius: 50% 50% 20% 20%;
+            box-shadow: 0 0 15px #FFA500, 0 0 30px #FF4500;
+            animation: flicker 0.1s ease-in-out alternate infinite;
+            transform-origin: bottom center;
+            transition: all 0.3s ease;
+        }
+
+        .flame.out {
+            opacity: 0;
+            transform: translateX(-50%) scale(0);
+        }
+
+        .smoke {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 10px;
+            background-color: rgba(150, 150, 150, 0.5);
+            border-radius: 50%;
+            opacity: 0;
+        }
+
+        .smoke.active { animation: rise 2s ease-out forwards; }
+
+        @keyframes flicker {
+            0% { transform: translateX(-50%) scale(1) rotate(-1deg); background-color: #FFA500; }
+            100% { transform: translateX(-50%) scale(1.1) rotate(2deg); background-color: #FFD700; box-shadow: 0 0 20px #FFD700, 0 0 40px #FF8C00; }
+        }
+
+        @keyframes rise {
+            0% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-50px) scale(3); }
+        }
+
+        .polaroid {
+            background: #fff;
+            padding: 12px 12px 35px 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transition: all 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+            opacity: 0;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            /* Start completely hidden behind the cake */
+            transform: translate(-50%, -10%) scale(0.2);
+            z-index: 10; 
+        }
+
+        .polaroid::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%) rotate(var(--tape-rot, -3deg));
+            width: 60px;
+            height: 20px;
+            background-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            z-index: 20;
+        }
+
+        .polaroid.show {
+            opacity: 1;
+            /* Moves to final X and Y positions variables */
+            transform: translate(calc(-50% + var(--final-x)), calc(-50% + var(--final-y))) scale(1) rotate(var(--final-rot));
+        }
+
+        /* Exactly 250px away on desktop */
+        @media (min-width: 768px) {
+            .pol-left { --final-x: -250px; --final-y: -40px; --final-rot: -12deg; }
+            .pol-right { --final-x: 250px; --final-y: -20px; --final-rot: 10deg; }
+        }
+        /* Adjusted for smaller screens to prevent massive side scrolling */
+        @media (max-width: 767px) {
+            .pol-left { --final-x: -120px; --final-y: -80px; --final-rot: -15deg; }
+            .pol-right { --final-x: 120px; --final-y: -120px; --final-rot: 12deg; }
+        }
+
+        /* Letter Styling */
+        .letter-paper {
+            background-color: #FFF9E6;
+            background-image: 
+                linear-gradient(transparent 95%, #E5D5B5 5%),
+                linear-gradient(90deg, transparent 95%, #E5D5B5 5%);
+            background-size: 100% 2em, 2em 100%;
+            box-shadow: 2px 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .letter-paper::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 30px;
+            background-color: rgba(220, 200, 170, 0.6);
+            border: 1px solid rgba(200, 180, 150, 0.4);
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+            rotate: -2deg;
+        }
+
+        .hidden-content {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+            transform: translateY(20px);
+            display: none;
+        }
+
+        .revealed-content {
+            display: flex;
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        /* Vinyl Player Styles */
+        .vinyl-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 50;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(253, 246, 227, 0.7);
+            padding: 8px 16px;
+            border-radius: 30px;
+            box-shadow: 0 4px 12px rgba(139, 90, 43, 0.15);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(210, 180, 140, 0.3);
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+        
+        .vinyl-container:hover {
+            transform: scale(1.05);
+            background: rgba(253, 246, 227, 0.95);
+        }
+
+        .vinyl-record {
+            width: 45px;
+            height: 45px;
+            background-color: #222;
+            border-radius: 50%;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Creates the grooved vinyl look */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3), inset 0 0 0 2px #111, inset 0 0 0 4px #2a2a2a, inset 0 0 0 6px #111, inset 0 0 0 8px #2a2a2a, inset 0 0 0 10px #111;
+        }
+
+        .vinyl-label {
+            width: 16px;
+            height: 16px;
+            background-color: #8B5A2B;
+            border-radius: 50%;
+            border: 1px solid #D2B48C;
+            position: relative;
+        }
+
+        .vinyl-hole {
+            width: 4px;
+            height: 4px;
+            background-color: #F4EBE1;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .spinning {
+            animation: spin 3s linear infinite;
+        }
+
+        .paused {
+            animation-play-state: paused !important;
+        }
+
+        .music-note {
+            font-size: 1.1rem;
+            color: #8B5A2B;
+            opacity: 0.4;
+            transition: opacity 0.3s ease;
+        }
+
+        .music-note.playing {
+            opacity: 1;
+            animation: bounce 1s infinite alternate;
+        }
+
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-4px); }
+        }
+
+        /* Start Overlay Styles */
+        #start-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: #FDF6E3;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            transition: opacity 0.8s ease-in-out;
+        }
+
+        #start-overlay.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="font-body flex flex-col items-center min-h-screen p-6 relative">
+
+    <!-- Start Overlay -->
+    <div id="start-overlay">
+        <button id="open-btn" class="bg-capyBrown hover:bg-capyDark text-white font-fun py-4 px-10 rounded-full shadow-xl transition-transform hover:scale-110 active:scale-95 text-2xl md:text-3xl flex items-center gap-3">
+            Click to Open Present! 🎁
+        </button>
+    </div>
+
+    <!-- Audio & Tiny Vinyl UI -->
+    <!-- Replace the src below with your actual "Unti-unti by Up Dharma Down" audio file link or path -->
+    <audio id="bg-music" loop>
+          <source src="Downloads/UDD-Unti-Unti Lyric Video (Original Song from Globe Studios' Valentine's Video 2017).mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="vinyl-player" class="vinyl-container" title="Play 'Unti-unti' by UDD">
+        <div id="vinyl-record" class="vinyl-record">
+            <div class="vinyl-label">
+                <div class="vinyl-hole"></div>
+            </div>
+        </div>
+        <div id="music-note" class="music-note">🎵</div>
+    </div>
+
+    <main class="w-full max-w-4xl flex flex-col items-center mt-8 z-10">
+        
+        <div id="greeting-container" class="text-center mb-6">
+            <h1 id="main-title" class="font-heading text-5xl md:text-6xl text-capyBrown drop-shadow-md mb-4 transition-all duration-500">
+                Make a Wish, dude! love u! 🤎
+            </h1>
+            <p id="subtitle" class="text-xl text-capyDark font-bold">
+                (Scroll down to see more after you blow the candle hehe)
+            </p>
+        </div>
+
+        <div class="cake-scene">
+            
+            <!-- Left Polaroid -->
+            <div class="polaroid pol-left" style="--tape-rot: 2deg;">
+                <img src="downloads/naoms.jpg" alt="Memory 1" class="w-32 h-32 md:w-44 md:h-44 object-cover border border-gray-100">
+                <p class="font-heading text-capyDark text-center mt-3 text-sm md:text-lg">flowers!</p>
+            </div>
+            
+            <!-- Right Polaroid -->
+            <div class="polaroid pol-right" style="--tape-rot: -2deg;">
+                <img src= "Downloads/naomih.jpg" alt="Memory 2" class="w-32 h-32 md:w-44 md:h-44 object-cover border border-gray-100">
+                <p class="font-heading text-capyDark text-center mt-3 text-sm md:text-lg">sunkiss!</p>
+            </div>
+
+            <!-- 3-Tier Cake Container -->
+            <div class="cake-wrapper">
+                
+                <!-- Candle on top tier -->
+                <div class="candle-wrapper">
+                    <div class="candle">
+                        <div class="wick"></div>
+                        <div id="flame" class="flame"></div>
+                        <div id="smoke" class="smoke"></div>
+                    </div>
+                </div>
+
+                <!-- Top Tier -->
+                <div class="tier tier-top">
+                    <div class="frosting"></div>
+                    <div class="frosting-drips">
+                        <div class="drip" style="height:25px;"></div>
+                        <div class="drip" style="height:15px; margin-top:-5px;"></div>
+                        <div class="drip" style="height:28px;"></div>
+                    </div>
+                    <div class="capy-decor" style="top: 20px;">🍊</div>
+                </div>
+
+                <!-- Middle Tier -->
+                <div class="tier tier-middle">
+                    <div class="frosting"></div>
+                    <div class="frosting-drips">
+                        <div class="drip" style="height:20px;"></div>
+                        <div class="drip" style="height:30px;"></div>
+                        <div class="drip" style="height:15px; margin-top:-5px;"></div>
+                        <div class="drip" style="height:25px;"></div>
+                    </div>
+                    <div class="capy-decor" style="top: 25px; left: 30px;">🦦</div>
+                    <div class="capy-decor" style="top: 25px; right: 30px;">🦦</div>
+                </div>
+
+                <!-- Bottom Tier -->
+                <div class="tier tier-bottom">
+                    <div class="frosting"></div>
+                    <div class="frosting-drips">
+                        <div class="drip" style="height:15px;"></div>
+                        <div class="drip" style="height:30px;"></div>
+                        <div class="drip" style="height:20px; margin-top:-5px"></div>
+                        <div class="drip" style="height:35px;"></div>
+                        <div class="drip" style="height:15px;"></div>
+                    </div>
+                    <div class="capy-decor" style="top: 35px; left: 40px;">🌿</div>
+                    <div class="capy-decor" style="top: 35px; right: 40px;">🌿</div>
+                    <div class="capy-decor" style="top: 40px;">🤎</div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <button id="mic-btn" class="bg-capyBrown hover:bg-capyDark text-white font-fun py-3 px-8 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95 text-xl mb-4">
+                Press me to blow your birthday candle! 🎙️
+        </button>
+
+        <p id="status-msg" class="text-sm text-gray-500 mb-8 italic text-center h-6"></p>
+
+        <!-- Personal Letter Section -->
+        <div id="surprise-section" class="hidden-content w-full flex-col items-center mt-4">
+            
+            <h2 class="font-heading text-4xl text-capyBrown mb-8 drop-shadow-sm text-center px-4">
+                Happy Birthday to my best friend! 🎂✨
+            </h2>
+
+            <div class="letter-paper w-full max-w-2xl p-8 md:p-12 rounded-sm mb-12 relative mx-4">
+                <div class="absolute -top-6 -left-6 text-5xl rotate-12 drop-shadow-md">🦦</div>
+                <div class="absolute -bottom-6 -right-6 text-5xl -rotate-12 drop-shadow-md">🌿</div>
+                
+                <h3 class="font-heading text-2xl text-capyBrown mb-6 border-b-2 border-capyLight pb-2">Hello, Naomi!</h3>
+                
+                <div class="font-body text-lg leading-loose text-capyDark space-y-4">
+                    <p>
+                    First of all, happy birthday to the strongest person I knew in my whole life. I know na madami ka nang pinagdaanan na alam o hindi ko man alam. Pero you know me, I am always here to be with you and to be your anchor and even your crying shoulder.
+                    </p>
+                    <p>
+                     I am sure mami is also proud of you and us! Kahit alam nating dalawa na ayaw mo talaga maging teacher pero hey! We're almost there to the plans that we wanted for each other. Loft apartment sa city tapos ikaw sa groceries and ako sa utilities; kilala kita te.
+                    </p>
+                    <p>
+                    May gift talaga ako sayo dapat!! Kaso alam kong hindi na din aabutin sa oras kaya I decided to make this for you as a friend na nagcocode NYAHEHEHE, may balik to sakin. Moreover, dude! I hoooooopppeeee we can visit Fourcups na ulit para matanaw na ulit natin yung barista mo. 
+                    </p>
+                </div>
+                
+                <div class="mt-10 text-right font-heading text-xl text-capyBrown">
+                    From your one and only, <br>
+                    <span class="text-3xl">Julia</span> 🤎
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const micBtn = document.getElementById('mic-btn');
+        const flame = document.getElementById('flame');
+        const smoke = document.getElementById('smoke');
+        const mainTitle = document.getElementById('main-title');
+        const subtitle = document.getElementById('subtitle');
+        const statusMsg = document.getElementById('status-msg');
+        const surpriseSection = document.getElementById('surprise-section');
+
+        // Overlay Elements
+        const startOverlay = document.getElementById('start-overlay');
+        const openBtn = document.getElementById('open-btn');
+
+        // Vinyl Player Elements
+        const bgMusic = document.getElementById('bg-music');
+        const vinylPlayerBtn = document.getElementById('vinyl-player');
+        const vinylRecord = document.getElementById('vinyl-record');
+        const musicNote = document.getElementById('music-note');
+
+        let audioContext;
+        let analyser;
+        let microphone;
+        let animationFrame;
+        let isBlownOut = false;
+        const BLOW_THRESHOLD = 50; 
+
+        micBtn.addEventListener('click', async () => {
+            if (isBlownOut) return; 
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 512;
+                analyser.smoothingTimeConstant = 0.4;
+                
+                microphone = audioContext.createMediaStreamSource(stream);
+                microphone.connect(analyser);
+
+                micBtn.classList.add('hidden');
+                statusMsg.textContent = "Listening... Blow near the microphone! 🌬️";
+                
+                detectBlow();
+
+            } catch (err) {
+                console.error("Microphone access denied or error:", err);
+                statusMsg.textContent = "Oops! I need microphone access to let you blow out the candle. Please allow it in your browser.";
+                statusMsg.classList.remove('text-gray-500');
+                statusMsg.classList.add('text-red-500');
+            }
+        });
+
+        function detectBlow() {
+            if (isBlownOut) return;
+
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyser.getByteFrequencyData(dataArray);
+
+            let sum = 0;
+            for (let i = 0; i < bufferLength; i++) {
+                sum += dataArray[i];
+            }
+            let averageVolume = sum / bufferLength;
+
+            if (averageVolume > BLOW_THRESHOLD) {
+                triggerBirthdaySurprise();
+            } else {
+                animationFrame = requestAnimationFrame(detectBlow);
+            }
+        }
+
+        function triggerBirthdaySurprise() {
+            isBlownOut = true;
+            cancelAnimationFrame(animationFrame);
+            
+            if (microphone) {
+                microphone.mediaStream.getTracks().forEach(track => track.stop());
+            }
+
+            // Extinguish Flame
+            flame.classList.add('out');
+            smoke.classList.add('active');
+            statusMsg.textContent = "";
+
+            mainTitle.textContent = "Yay! Happy Birthday! 🎉";
+            subtitle.classList.add('hidden');
+
+            // Reveal Letter
+            surpriseSection.classList.add('revealed-content');
+            surpriseSection.classList.remove('hidden-content');
+
+            // Pop out Polaroids
+            const polaroids = document.querySelectorAll('.polaroid');
+            polaroids.forEach((p, index) => {
+                setTimeout(() => {
+                    p.classList.add('show');
+                }, 800 + (index * 200)); 
+            });
+
+            fireConfetti();
+        }
+
+        function fireConfetti() {
+            var duration = 3000;
+            var end = Date.now() + duration;
+
+            (function frame() {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#8B5A2B', '#D2B48C', '#9DC183', '#FFA500']
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#8B5A2B', '#D2B48C', '#9DC183', '#FFA500']
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        }
+
+        // Vinyl Player Logic
+        vinylPlayerBtn.addEventListener('click', () => {
+            if (bgMusic.paused) {
+                bgMusic.play();
+                vinylRecord.classList.add('spinning');
+                vinylRecord.classList.remove('paused');
+                musicNote.classList.add('playing');
+            } else {
+                bgMusic.pause();
+                vinylRecord.classList.add('paused');
+                musicNote.classList.remove('playing');
+            }
+        });
+
+        // Start Overlay Logic
+        openBtn.addEventListener('click', () => {
+            startOverlay.classList.add('fade-out');
+            
+            // Start music immediately after user interaction
+            bgMusic.play().then(() => {
+                vinylRecord.classList.add('spinning');
+                vinylRecord.classList.remove('paused');
+                musicNote.classList.add('playing');
+            }).catch(err => {
+                console.log("Audio play failed:", err);
+            });
+
+            // Remove overlay from DOM after fade out transition finishes
+            setTimeout(() => {
+                startOverlay.style.display = 'none';
+            }, 800);
+        });
+    </script>
+</body>
+</html>
